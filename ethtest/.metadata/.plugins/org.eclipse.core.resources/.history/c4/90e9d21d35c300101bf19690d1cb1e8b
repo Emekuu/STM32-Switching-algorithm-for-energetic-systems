@@ -1,0 +1,17 @@
+/*
+ * udp_echo.h
+ *
+ *  Created on: Nov 16, 2025
+ *      Author: emecc
+ */
+
+#ifndef SRC_UDP_ECHO_H_
+#define SRC_UDP_ECHO_H_
+
+
+#ifndef __UDP_ECHO_H__
+#define __UDP_ECHO_H__
+
+void udp_echo_init(void);
+
+#endif
