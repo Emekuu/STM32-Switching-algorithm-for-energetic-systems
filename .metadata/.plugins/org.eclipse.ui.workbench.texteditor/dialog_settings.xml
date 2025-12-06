@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="hasShownOverlayPopupBefore" value="true"/>
+	<item key="replaceBarOpen" value="false"/>
+	<list key="searchhistory">
+		<item value="callback"/>
+		<item value="usart3"/>
+		<item value="debug"/>
+		<item value="HAL_UARTEx_ReceiveToIdle_IT(&amp;huart2, rx2, sizeof(rx2));"/>
+		<item value="huart"/>
+		<item value="hal_uart"/>
+		<item value="hal"/>
+	</list>
+</section>

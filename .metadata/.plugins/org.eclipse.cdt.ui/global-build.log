@@ -1,0 +1,176 @@
+17:38:16 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-size  btwork.elf 
+   text	   data	    bss	    dec	    hex	filename
+  18352	    332	   3332	  22016	   5600	btwork.elf
+Finished building: default.size.stdout
+ 
+17:38:46 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-size  btwork.elf 
+   text	   data	    bss	    dec	    hex	filename
+  18352	    332	   3332	  22016	   5600	btwork.elf
+Finished building: default.size.stdout
+ 
+17:41:29 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  18352	    332	   3332	  22016	   5600	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+17:58:03 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_hal_msp.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_hal_msp.d" -MT"Core/Src/stm32f7xx_hal_msp.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_hal_msp.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:142:37: error: 'bt_rx' undeclared (first use in this function)
+  142 |         HAL_UART_Transmit(&huart3, &bt_rx, 1, HAL_MAX_DELAY);
+      |                                     ^~~~~
+../Core/Src/main.c:142:37: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+make: *** Waiting for unfinished jobs....
+"make -j12 all" terminated with exit code 2. Build might be incomplete.
+17:58:25 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:99:35: error: 'rx_byte' undeclared (first use in this function)
+   99 |     HAL_UART_Receive_IT(&huart6, &rx_byte, 1);
+      |                                   ^~~~~~~
+../Core/Src/main.c:99:35: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j12 all" terminated with exit code 2. Build might be incomplete.
+17:58:52 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  20528	    332	   3332	  24192	   5e80	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:02:59 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  20528	    332	   3332	  24192	   5e80	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:07:41 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_hal_msp.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_hal_msp.d" -MT"Core/Src/stm32f7xx_hal_msp.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_hal_msp.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  20484	    332	   3332	  24148	   5e54	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:10:26 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_hal_msp.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_hal_msp.d" -MT"Core/Src/stm32f7xx_hal_msp.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_hal_msp.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  20520	    332	   3332	  24184	   5e78	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:16:44 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:427:17: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
+  427 |         int n = snprintf(buf, sizeof(buf), "%lu\r\n", (unsigned long)last_rtt_ms);
+      |                 ^~~~~~~~
+../Core/Src/main.c:22:1: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+   21 | #include "string.h"
+  +++ |+#include <stdio.h>
+   22 | 
+../Core/Src/main.c:427:17: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
+  427 |         int n = snprintf(buf, sizeof(buf), "%lu\r\n", (unsigned long)last_rtt_ms);
+      |                 ^~~~~~~~
+../Core/Src/main.c:427:17: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  23212	    416	   3672	  27300	   6aa4	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:21:31 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:429:21: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
+  429 |             int n = snprintf(buf, sizeof(buf), "%lu\r\n", (unsigned long)delta_ms);
+      |                     ^~~~~~~~
+../Core/Src/main.c:22:1: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+   21 | #include "string.h"
+  +++ |+#include <stdio.h>
+   22 | 
+../Core/Src/main.c:429:21: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
+  429 |             int n = snprintf(buf, sizeof(buf), "%lu\r\n", (unsigned long)delta_ms);
+      |                     ^~~~~~~~
+../Core/Src/main.c:429:21: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  23224	    416	   3680	  27320	   6ab8	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
+18:25:08 **** Incremental Build of configuration Debug for project btwork ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "btwork.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\emecc\STM32CubeIDE\STM3232-Communication-for-energetic-systems\btwork\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="btwork.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: btwork.elf
+ 
+arm-none-eabi-size  btwork.elf 
+arm-none-eabi-objdump -h -S btwork.elf  > "btwork.list"
+   text	   data	    bss	    dec	    hex	filename
+  23224	    416	   3680	  27320	   6ab8	btwork.elf
+Finished building: default.size.stdout
+ 
+Finished building: btwork.list
+ 
