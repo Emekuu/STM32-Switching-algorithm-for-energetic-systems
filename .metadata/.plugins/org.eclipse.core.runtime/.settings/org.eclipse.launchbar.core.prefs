@@ -1,7 +1,7 @@
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch=x86_64
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/name=Local
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=win32
-configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btmast,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btsl,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btwork
+configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btwork,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:kamofungujSLAVE Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:kamofungujSLAVEB Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:masterr Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:slavee Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:switching-algorithm Debug
 eclipse.preferences.version=1
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer\ Debug/activeLaunchMode=run
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer\ Debug/activeLaunchTarget=null\:---
@@ -12,3 +12,14 @@ org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BTSLave\ Debug/activeLaunchMode
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BTSLave\ Debug/activeLaunchTarget=null\:---
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btmast/activeLaunchMode=run
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btmast/activeLaunchTarget=null\:---
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btwork/activeLaunchMode=run
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:btwork/activeLaunchTarget=null\:---
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:masterr\ Debug/activeLaunchMode=run
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:slavee\ Debug/activeLaunchMode=run
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:switching-algorithm\ Debug/activeLaunchMode=run
+org.eclipse.launchbar.core.descriptorType.default\:kamofungujSLAVE\ Debug/activeLaunchMode=run
+org.eclipse.launchbar.core.descriptorType.default\:kamofungujSLAVEB\ Debug/activeLaunchMode=debug
+org.eclipse.launchbar.core.descriptorType.default\:masterr\ Debug/activeLaunchMode=debug
+org.eclipse.launchbar.core.descriptorType.default\:masterr\ Debug/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
+org.eclipse.launchbar.core.descriptorType.default\:switching-algorithm\ Debug/activeLaunchMode=debug
+org.eclipse.launchbar.core.descriptorType.default\:switching-algorithm\ Debug/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local

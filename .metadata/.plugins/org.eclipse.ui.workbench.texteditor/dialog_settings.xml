@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<item key="hasShownOverlayPopupBefore" value="true"/>
-	<item key="replaceBarOpen" value="false"/>
+	<item key="replaceBarOpen" value="true"/>
 	<list key="searchhistory">
+		<item value="recvfrom"/>
+		<item value="close"/>
+		<item value="sendto"/>
+		<item value="socket"/>
+		<item value="MX_ETH"/>
+		<item value="PHY"/>
+		<item value="HETH"/>
+		<item value="MPU"/>
+		<item value="low"/>
+		<item value="low_level"/>
+		<item value="hal"/>
+		<item value="uart"/>
+		<item value="usart"/>
 		<item value="callback"/>
 		<item value="usart3"/>
-		<item value="debug"/>
-		<item value="HAL_UARTEx_ReceiveToIdle_IT(&amp;huart2, rx2, sizeof(rx2));"/>
-		<item value="huart"/>
-		<item value="hal_uart"/>
-		<item value="hal"/>
 	</list>
 </section>

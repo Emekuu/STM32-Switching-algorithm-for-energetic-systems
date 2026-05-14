@@ -20,6 +20,7 @@
 #include "main.h"
 #include "string.h"
 #include <stdio.h>
+#include "weighted_alg.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -93,7 +94,30 @@ uint32_t last_rtt_ms = 0;
 uint32_t last_rx_tick = 0;
 uint32_t delta_ms = 0;
 /* USER CODE END 0 */
+LinkMetrics eth_metrics = {0};
+LinkMetrics bt_metrics  = {0};
 
+NormalizationParams norm = {
+    .rtt_max  = 200.0f,
+    .loss_max = 0.2f,
+    .thr_max  = 1000.0f
+};
+
+Weights w = {
+    .w_rtt  = 0.4f,
+    .w_loss = 0.4f,
+    .w_thr  = 0.2f
+};
+
+SwitchParams sp = {
+    .hysteresis     = 0.05f,
+    .stable_time_ms = 5000
+};
+
+SwitchState st = {
+    .current_link     = LINK_ETH,
+    .better_since_ms  = 0U
+};
 /**
   * @brief  The application entry point.
   * @retval int
@@ -108,7 +132,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -135,12 +160,29 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (HAL_GetTick() - t_start > 1000)  // raz za sekundu
-	  {
-	      t_start = HAL_GetTick();
-	      HAL_UART_Transmit(&huart6, &bt_tx, 1, HAL_MAX_DELAY);  // pošli 'P' na HC-05
-	      HAL_UART_Receive_IT(&huart6, &bt_rx, 1);               // čakaj odpoveď
-	  }
+	  // Prvý scenár: Ethernet lepší
+	  // --- KROK A: Zjištění reálné dostupnosti Ethernetu ---
+	        // heth je tvoje instance ethernetu. Kontrolujeme, jestli je link "UP"
+	        if (heth.State == HAL_ETH_STATE_READY && (heth.Instance->SR & ETH_DMARXDESC_LS)) {
+	            eth_metrics.available = 1;
+	        } else {
+	            // Pokud odpojíš kabel, nastavíme horší parametry
+	            eth_metrics.available = 0;
+	            eth_metrics.loss = 1.0f; // 100% ztráta
+	            eth_metrics.health_score = 0;
+	        }
+
+	        // --- KROK B: Výpočet skóre ---
+	        float score_eth = link_score(&eth_metrics, &norm, &w);
+	        float score_bt  = link_score(&bt_metrics,  &norm, &w);
+
+	        uint32_t now = HAL_GetTick();
+	        LinkId chosen = decide_link(&st, score_eth, score_bt, &sp, now);
+
+	        // --- KROK C: Vizualizace na LED (Nucleo deska) ---
+
+
+	        HAL_Delay(100); // Nemusíš čekat celou sekundu, 100ms je na reakci lepší
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
