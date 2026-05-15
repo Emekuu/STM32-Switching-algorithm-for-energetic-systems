@@ -438,6 +438,8 @@ static void App_InitLinks(void)
     g_links[1].enabled = true;
     g_links[1].state = LINK_STATE_DOWN;
 
+    Eth_RegisterLinkInfo(&g_links[1]);
+
     g_links[2].type = LINK_RS485;
     g_links[2].enabled = true;
     g_links[2].state = LINK_STATE_DOWN;
@@ -560,7 +562,7 @@ static void App_UpdateEthDown(void)
     eth_link->metrics.jitter_ms = 0U;
     eth_link->metrics.packet_loss_permille = 1000U;
     eth_link->metrics.signal_dbm = 0;
-    eth_link->metrics.security_ok = true;
+    eth_link->metrics.security_ok = false;
 }
 
 static void App_UpdateEthReply(uint32_t rtt_ms)

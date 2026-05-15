@@ -1,8 +1,13 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <limits.h>
+
 
 #include "d_decision.h"
+
+
+
 static bool decision_link_basic_valid(const link_info_t *link)
 {
     if (link == NULL)
@@ -190,7 +195,8 @@ static decision_result_t decision_select_weighted_score(const link_info_t *links
                                                         const decision_config_t *config)
 {
     decision_result_t result = { false, LINK_ETHERNET, 0 };
-    int32_t best_score = (-2147483647 - 1);
+    int32_t best_score = INT_MIN;
+
 
     for (uint32_t i = 0; i < link_count; i++)
     {
@@ -221,7 +227,7 @@ static decision_result_t decision_select_security_first(const link_info_t *links
                                                         const decision_config_t *config)
 {
     decision_result_t secure_best = { false, LINK_ETHERNET, 0 };
-    int32_t best_secure_score = (-2147483647 - 1);
+    int32_t best_secure_score = INT_MIN;
 
     for (uint32_t i = 0; i < link_count; i++)
     {
