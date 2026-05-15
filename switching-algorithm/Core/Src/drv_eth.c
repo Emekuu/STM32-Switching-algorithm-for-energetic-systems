@@ -9,15 +9,15 @@ extern struct netif gnetif;
 static int sock = -1;
 static struct sockaddr_in servaddr;
 
-// --- Implementácia funkcií ---
+
 
 static ComStatus_t Eth_Init(void) {
-    if (sock >= 0) lwip_close(sock); // Ak už existuje, zatvor ho
+    if (sock >= 0) lwip_close(sock);
 
     sock = lwip_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) return COM_ERROR;
 
-    // Nastavenie cieľovej adresy (tvoj Python server)
+
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(12345);
@@ -35,12 +35,12 @@ static void Eth_Close(void) {
 
 static uint8_t Eth_IsAlive(void) {
     uint32_t phy_reg = 0;
-    // Čítame register 1 (BSR), kde bit 2 (0x0004) je Link Status
+
     HAL_ETH_ReadPHYRegister(&heth, 1, 1, &phy_reg);
 
     uint8_t link = (phy_reg & 0x0004) ? 1 : 0;
 
-    // Ak vypadne kábel, musíme "zhodiť" aj LwIP a socket
+
     if (!link && sock >= 0) {
         Eth_Close();
         netif_set_link_down(&gnetif);
@@ -60,7 +60,7 @@ static ComStatus_t Eth_Receive(uint8_t* buf, uint16_t max_len, uint16_t *receive
     struct sockaddr_in from;
     socklen_t fromlen = sizeof(from);
 
-    // MSG_DONTWAIT zabezpečí, že nebudeme čakať, ak nie sú dáta
+
     int n = lwip_recvfrom(sock, buf, max_len, MSG_DONTWAIT, (struct sockaddr *)&from, &fromlen);
 
     if (n > 0) {
@@ -70,7 +70,7 @@ static ComStatus_t Eth_Receive(uint8_t* buf, uint16_t max_len, uint16_t *receive
     return COM_TIMEOUT;
 }
 
-// Priradenie k objektu rozhrania
+
 ComInterface_t EthernetInterface = {
     .Init = Eth_Init,
     .Send = Eth_Send,

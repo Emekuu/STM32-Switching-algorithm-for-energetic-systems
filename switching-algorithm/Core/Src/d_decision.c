@@ -1,4 +1,6 @@
 
+#include <stddef.h>
+#include <stdbool.h>
 
 #include "d_decision.h"
 static bool decision_link_basic_valid(const link_info_t *link)
