@@ -132,7 +132,7 @@ static decision_result_t decision_select_threshold_weighted(const link_info_t *l
                                                             uint32_t link_count,
                                                             const decision_config_t *config)
 {
-    decision_result_t result = { false, LINK_ETHERNET, 0 };
+    decision_result_t result = { false, LINK_NONE, 0 };
     int32_t best_score = (-2147483647 - 1);
 
     for (uint32_t i = 0; i < link_count; i++)
@@ -167,7 +167,7 @@ static decision_result_t decision_select_lowest_latency(const link_info_t *links
 {
     (void)config;
 
-    decision_result_t result = { false, LINK_ETHERNET, 0 };
+    decision_result_t result = { false, LINK_NONE, 0 };
     uint32_t best_rtt = 0xFFFFFFFFU;
 
     for (uint32_t i = 0; i < link_count; i++)
@@ -194,7 +194,7 @@ static decision_result_t decision_select_weighted_score(const link_info_t *links
                                                         uint32_t link_count,
                                                         const decision_config_t *config)
 {
-    decision_result_t result = { false, LINK_ETHERNET, 0 };
+    decision_result_t result = { false, LINK_NONE, 0 };
     int32_t best_score = INT_MIN;
 
 
@@ -226,7 +226,7 @@ static decision_result_t decision_select_security_first(const link_info_t *links
                                                         uint32_t link_count,
                                                         const decision_config_t *config)
 {
-    decision_result_t secure_best = { false, LINK_ETHERNET, 0 };
+    decision_result_t secure_best = { false, LINK_NONE, 0 };
     int32_t best_secure_score = INT_MIN;
 
     for (uint32_t i = 0; i < link_count; i++)
@@ -261,7 +261,7 @@ decision_result_t decision_select_link(const link_info_t *links,
                                        uint32_t link_count,
                                        const decision_config_t *config)
 {
-    decision_result_t invalid_result = { false, LINK_ETHERNET, 0 };
+    decision_result_t invalid_result = { false, LINK_NONE, 0 };
 
     if ((links == NULL) || (config == NULL) || (link_count == 0U) || (link_count > DECISION_MAX_LINKS))
         return invalid_result;

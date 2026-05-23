@@ -6,9 +6,12 @@
 
 typedef enum
 {
-    LINK_BLUETOOTH = 0,
-    LINK_ETHERNET,
-	LINK_RS485
+    LINK_NONE = 0,
+    LINK_BLUETOOTH,
+    LINK_ETH_DIRECT,
+    LINK_ETH_PLC,
+    LINK_RS485,
+    LINK_TYPE_COUNT
 } link_type_t;
 
 typedef enum
@@ -16,24 +19,43 @@ typedef enum
     LINK_STATE_DOWN = 0,
     LINK_STATE_DEGRADED,
     LINK_STATE_UP
-} link_oper_state_t;
+} link_state_t;
 
 typedef struct
 {
+    bool     measurement_valid;
     uint32_t rtt_ms;
     uint32_t jitter_ms;
     uint32_t packet_loss_permille;
-    int16_t signal_dbm;
-    bool security_ok;
-    bool measurement_valid;
+    int32_t  signal_dbm;
+    bool     security_ok;
 } link_metrics_t;
 
 typedef struct
 {
-    link_type_t type;
-    bool enabled;
-    link_oper_state_t state;
+    link_type_t    type;
+    bool           enabled;
+    link_state_t   state;
     link_metrics_t metrics;
 } link_info_t;
 
-#endif /* LINK_TYPES_H */
+typedef enum
+{
+    PATH_ETH_DIRECT = 0,
+    PATH_ETH_PLC    = 1,
+    PATH_BT         = 2,
+    PATH_RS485      = 3,
+    PATH_COUNT
+} path_id_t;
+
+#pragma pack(push, 1)
+typedef struct
+{
+    uint32_t seq;
+    uint32_t tx_ts_ms;
+    uint8_t  path_id;
+    uint8_t  reserved[3];
+} test_hdr_t;
+#pragma pack(pop)
+
+#endif

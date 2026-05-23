@@ -43,8 +43,6 @@
 
 COM_InitTypeDef BspCOMInit;
 I2C_HandleTypeDef hi2c1;
-DMA_HandleTypeDef hdma_i2c1_rx;
-DMA_HandleTypeDef hdma_i2c1_tx;
 
 /* USER CODE BEGIN PV */
 uint8_t RX_Buffer[1];
@@ -56,7 +54,6 @@ uint8_t RX_Frame[5];
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -88,7 +85,7 @@ void BuildStatusFrame(void)
 typedef struct {
     uint16_t rtt_ms;
     uint16_t loss_permille;
-    uint16_t rssi;
+    int16_t rssi;
     uint16_t jitter_ms;
 } metrics_t;
 
@@ -180,7 +177,7 @@ void compute_window_metrics(void)
 
     metrics.rtt_ms        = avg_rtt;
     metrics.loss_permille = loss_pm;
-    metrics.rssi          = (uint16_t)(-65); // zatiaľ natvrdo, neskôr z BLE RSSI API[web:369][web:393]
+    metrics.rssi          = -65; // zatiaľ natvrdo, neskôr z BLE RSSI API[web:369][web:393]
     metrics.jitter_ms     = 0;               // môžeš dopočítať neskôr z variácie RTT
 }
 
@@ -205,6 +202,31 @@ void link_probe_task(void)
     }
 }
 
+
+
+
+
+static uint8_t bt_frame[8];
+
+static uint8_t BT_I2C_CalcChecksum(const uint8_t *buf, uint8_t len)
+{
+    uint8_t cs = 0;
+    for (uint8_t i = 0; i < len; i++)
+        cs ^= buf[i];
+    return cs;
+}
+
+static void BT_I2C_BuildFrame(void)
+{
+    bt_frame[0] = 0xA5;   // header
+    bt_frame[1] = (uint8_t)((int8_t)metrics.rssi);
+    bt_frame[2] = (uint8_t)(metrics.loss_permille >> 8);
+    bt_frame[3] = (uint8_t)(metrics.loss_permille & 0xFF);
+    bt_frame[4] = (uint8_t)(metrics.rtt_ms >> 8);
+    bt_frame[5] = (uint8_t)(metrics.rtt_ms & 0xFF);
+    bt_frame[6] = (uint8_t)(metrics.jitter_ms & 0xFF); // zatiaľ len LSB jitteru
+    bt_frame[7] = BT_I2C_CalcChecksum(bt_frame, 7);
+}
 /* USER CODE END 0 */
 
 /**
@@ -239,13 +261,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_StatusTypeDef ret;
 
-
+  BSP_LED_Init(LED_GREEN);
+  BSP_LED_Init(LED_RED);
   /* USER CODE END 2 */
 
   /* Initialize leds */
@@ -268,22 +290,22 @@ int main(void)
   {
     Error_Handler();
   }
-  metrics.rtt_ms        = 50;
-  metrics.loss_permille = 0;
-  metrics.rssi          = (uint16_t)(-65);
-  metrics.jitter_ms     = 5;
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-    {
-    /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-	  /*link_probe_task();*/          // meranie BT linky
-	      metrics_update_buffer();    // prekopíruje metrics -> metrics_buf
-	      HAL_I2C_Slave_Transmit(&hi2c1, metrics_buf, sizeof(metrics_buf), HAL_MAX_DELAY);
-  /* USER CODE END 3 */}
+
+  while (1)
+  {
+      metrics.rtt_ms = 42;
+      metrics.loss_permille = 15;
+      metrics.rssi = -65;
+      metrics.jitter_ms = 3;
+
+      BT_I2C_BuildFrame();
+      HAL_I2C_Slave_Transmit(&hi2c1, bt_frame, sizeof(bt_frame), HAL_MAX_DELAY);
+  }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -307,8 +329,14 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_10;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 27;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -319,14 +347,14 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK4|RCC_CLOCKTYPE_HCLK2
                               |RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK2Divider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLK2Divider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.AHBCLK4Divider = RCC_SYSCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -371,8 +399,8 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00B07CB4;
-  hi2c1.Init.OwnAddress1 = 40;
+  hi2c1.Init.Timing = 0x20404768;
+  hi2c1.Init.OwnAddress1 = 80;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -400,26 +428,6 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
-
-}
-
-/**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMAMUX1_CLK_ENABLE();
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-  /* DMA1_Channel2_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
 }
 

@@ -6,7 +6,7 @@
 
 #include "link_types.h"
 
-#define DECISION_MAX_LINKS    3U
+#define DECISION_MAX_LINKS ((uint32_t)LINK_TYPE_COUNT)
 
 typedef enum
 {

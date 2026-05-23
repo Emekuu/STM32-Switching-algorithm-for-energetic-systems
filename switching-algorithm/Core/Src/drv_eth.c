@@ -3,8 +3,15 @@
 #include <string.h>
 #include <stdio.h>
 #include "d_decision.h"
-static link_info_t *eth_link_info = NULL;
+#include "link_types.h"
 
+static link_info_t *eth_link_info = NULL;
+static ComStatus_t Eth_Init(void);
+
+static ComStatus_t Eth_Receive(uint8_t *buf, uint16_t max_len, uint16_t *rx_len);
+static uint8_t Eth_IsAlive(void);
+static void Eth_Close(void);
+static void Eth_UpdateSecurityStatus(void);
 extern ETH_HandleTypeDef heth;
 extern struct netif gnetif;
 
@@ -42,28 +49,22 @@ static void Eth_Close(void) {
 }
 
 static uint8_t Eth_IsAlive(void) {
-    uint32_t phy_reg = 0;
-
-    HAL_ETH_ReadPHYRegister(&heth, 1, 1, &phy_reg);
-
-    uint8_t link = (phy_reg & 0x0004) ? 1 : 0;
-
-    if (!link && sock >= 0) {
-        Eth_Close();
-        netif_set_link_down(&gnetif);
-    }
-
-    if (eth_link_info != NULL) {
-        if (!link) {
-            eth_link_info->metrics.security_ok = false;
-        } else {
+    if (netif_is_link_up(&gnetif)) {
+        if (eth_link_info != NULL) {
             Eth_UpdateSecurityStatus();
         }
+        return 1;
+    } else {
+        if (sock >= 0) {
+            Eth_Close();
+            netif_set_link_down(&gnetif);
+        }
+        if (eth_link_info != NULL) {
+            eth_link_info->metrics.security_ok = false;
+        }
+        return 0;
     }
-
-    return link;
 }
-
 static ComStatus_t Eth_Send(uint8_t* data, uint16_t len) {
     if (sock < 0) return COM_ERROR;
     int res = lwip_sendto(sock, data, len, 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
