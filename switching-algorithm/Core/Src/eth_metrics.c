@@ -64,9 +64,25 @@ void Metrics_OnFrameReceived(rx_metrics_t *m,
                              const generic_frame_info_t *f,
                              uint32_t rx_tick_ms)
 {
+	printf("[DBG_RTT] seq=%lu has_ts=%u tx=%lu rx=%lu\n",
+	       (unsigned long)f->seq,
+	       (unsigned)f->has_tx_ts,
+	       (unsigned long)f->tx_ts_ms,
+	       (unsigned long)rx_tick_ms);
     if ((m == NULL) || (f == NULL))
         return;
+    if (f->has_tx_ts)
+    {
+        int32_t rtt = (int32_t)rx_tick_ms - (int32_t)f->tx_ts_ms;
+        if (rtt < 0)
+            rtt = 0;
 
+        m->rtt_ms = (uint32_t)rtt;
+
+        printf("[DBG_RTT2] seq=%lu rtt=%lu\n",
+                  (unsigned long)f->seq,
+                  (unsigned long)m->rtt_ms);
+    }
 
 
     if (!m->initialized)
@@ -124,12 +140,17 @@ void Metrics_OnFrameReceived(rx_metrics_t *m,
             variation = -variation;
 
         Metrics_JitterWindowPush(m, (uint32_t)variation);
+
+        /* RTT ~ reálny interval medzi rámcami na F7 */
+        m->rtt_ms = rx_delta;
+
         m->last_tx_ts_ms = f->tx_ts_ms;
     }
     else
     {
         uint32_t interarrival = rx_tick_ms - m->last_rx_tick_ms;
         Metrics_JitterWindowPush(m, interarrival);
+        m->rtt_ms = interarrival;
     }
 
     m->last_rx_tick_ms = rx_tick_ms;
@@ -194,7 +215,7 @@ void Metrics_ApplyToLink(link_info_t *link, const rx_metrics_t *m)
     }
 
     link->metrics.measurement_valid = true;
-    link->metrics.rtt_ms = 0U;
+    link->metrics.rtt_ms = m->rtt_ms;
     link->metrics.jitter_ms = Metrics_GetJitterMs(m);
     link->metrics.packet_loss_permille = Metrics_GetLossPercent(m);
 

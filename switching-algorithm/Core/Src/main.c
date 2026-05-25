@@ -639,6 +639,11 @@ static void Eth_UdpRecvCallback(void *arg,
                        (unsigned long)Metrics_GetJitterMs(metrics),
                        (unsigned long)Metrics_GetThroughputBps(metrics),
                        (unsigned long)frame.seq);
+                printf("[RX_SRC] src=%s:%u path=%u seq=%lu\r\n",
+                       ipaddr_ntoa(addr),
+                       (unsigned)port,
+                       (unsigned)frame.path_id,
+                       (unsigned long)frame.seq);
 
                 App_RunDecision();
             }
@@ -660,6 +665,18 @@ static void App_InitRs485Placeholder(void)
     (void)g_rs485;
     g_rs485_ready = 0U;
     printf("[RS485] Placeholder mode active\r\n");
+}
+
+static void App_MaybeHardResetEthMetrics(uint32_t now_ms)
+{
+    const uint32_t hard_reset_timeout_ms = 10000U; // napr. 10 s bez framov
+
+    if (Metrics_IsTimedOut(&g_rx_direct, now_ms, hard_reset_timeout_ms)) {
+        Metrics_Reset(&g_rx_direct);
+    }
+    if (Metrics_IsTimedOut(&g_rx_plc, now_ms, hard_reset_timeout_ms)) {
+        Metrics_Reset(&g_rx_plc);
+    }
 }
 
 static void App_UpdateRsPath(uint8_t eth_ok)
@@ -828,7 +845,8 @@ static void App_RunDecision(void)
 
             if (score_diff < g_decision_cfg.switch_hysteresis_score)
             {
-                printf("[DECISION] hold current link (hysteresis)\r\n");
+            	printf("[DECISION] hold current link (hysteresis), keep=%s\r\n",
+            	       App_LinkTypeToStr(g_active_link));
                 return;
             }
 
@@ -944,7 +962,7 @@ void StartDefaultTask(void const * argument)
 	    const uint32_t timeout_ms = 2000U;
 
 	    App_UpdateEthLinkHealth();
-
+	    App_MaybeHardResetEthMetrics(now);
 	    if (!Metrics_IsTimedOut(&g_rx_direct, now, timeout_ms) ||
 	        !Metrics_IsTimedOut(&g_rx_plc, now, timeout_ms))
 	    {

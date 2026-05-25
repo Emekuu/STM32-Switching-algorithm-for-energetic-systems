@@ -21,7 +21,7 @@ typedef struct
 
     uint32_t last_rx_tick_ms;
     uint32_t last_tx_ts_ms;
-
+    uint32_t rtt_ms;
     uint32_t bytes_in_window;
     uint32_t throughput_bps;
     uint32_t last_tp_tick_ms;

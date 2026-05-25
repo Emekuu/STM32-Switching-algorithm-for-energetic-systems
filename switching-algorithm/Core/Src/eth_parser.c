@@ -27,7 +27,7 @@ uint8_t Generic_ParseFrame(const uint8_t *payload,
     out->tx_ts_ms = hdr->tx_ts_ms;
     out->payload_len = len;
     out->path_id = hdr->path_id;
-    out->has_tx_ts = 1U;
+    out->has_tx_ts = 1;
 
     return 1U;
 }
