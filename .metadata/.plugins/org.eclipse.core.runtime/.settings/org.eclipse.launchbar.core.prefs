@@ -1,8 +1,12 @@
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch=x86_64
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/name=Local
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=win32
-configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:masterr Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:slavee Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:switching-algorithm Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:bt_tx Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer Debug
+configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:slavee Debug,org.eclipse.launchbar.core.descriptorType.default\:BLE_p2pClient Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:switching-algorithm Debug
 eclipse.preferences.version=1
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pClient\ Debug/activeLaunchMode=run
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pClient\ Debug/activeLaunchTarget=null\:---
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pClient/activeLaunchMode=debug
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pClient/activeLaunchTarget=null\:---
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer\ Debug/activeLaunchMode=run
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer\ Debug/activeLaunchTarget=null\:---
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BLE_p2pServer/activeLaunchMode=run
@@ -20,6 +24,10 @@ org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:masterr\ Debug/activeLaunchMode
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:masterr\ Debug/activeLaunchTarget=null\:---
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:slavee\ Debug/activeLaunchMode=run
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:switching-algorithm\ Debug/activeLaunchMode=run
+org.eclipse.launchbar.core.descriptorType.default\:BLE_p2pClient\ Debug/activeLaunchMode=run
+org.eclipse.launchbar.core.descriptorType.default\:BLE_p2pClient\ Debug/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
+org.eclipse.launchbar.core.descriptorType.default\:BLE_p2pClient/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
+org.eclipse.launchbar.core.descriptorType.default\:STM32WB55_BLE_HeartRate_Client\ Debug/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
 org.eclipse.launchbar.core.descriptorType.default\:kamofungujSLAVE\ Debug/activeLaunchMode=run
 org.eclipse.launchbar.core.descriptorType.default\:kamofungujSLAVEB\ Debug/activeLaunchMode=debug
 org.eclipse.launchbar.core.descriptorType.default\:masterr\ Debug/activeLaunchMode=debug

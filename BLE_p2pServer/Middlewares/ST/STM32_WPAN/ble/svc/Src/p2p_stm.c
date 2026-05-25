@@ -104,6 +104,7 @@ do {\
  */
 static SVCCTL_EvtAckStatus_t PeerToPeer_Event_Handler(void *Event)
 {
+	APP_DBG_MSG("PeerToPeer_Event_Handler called\r\n");
   SVCCTL_EvtAckStatus_t return_value;
   hci_event_pckt *event_pckt;
   evt_blecore_aci *blecore_evt;
@@ -123,6 +124,9 @@ static SVCCTL_EvtAckStatus_t PeerToPeer_Event_Handler(void *Event)
         case ACI_GATT_ATTRIBUTE_MODIFIED_VSEVT_CODE:
        {
           attribute_modified = (aci_gatt_attribute_modified_event_rp0*)blecore_evt->data;
+          APP_DBG_MSG("ATTR MODIFIED: handle=0x%x, notify_cccd=0x%x\r\n",
+                      attribute_modified->Attr_Handle,
+                      aPeerToPeerContext.P2PNotifyServerToClientCharHdle + 2);
             if(attribute_modified->Attr_Handle == (aPeerToPeerContext.P2PNotifyServerToClientCharHdle + 2))
             {
               /**
@@ -188,7 +192,7 @@ static SVCCTL_EvtAckStatus_t PeerToPeer_Event_Handler(void *Event)
  */
 void P2PS_STM_Init(void)
 {
- 
+	 APP_DBG_MSG("P2PS_STM_Init called\r\n");
   Char_UUID_t  uuid16;
 
   /**
@@ -239,7 +243,7 @@ void P2PS_STM_Init(void)
                       12,
                       CHAR_PROP_NOTIFY,
                       ATTR_PERMISSION_NONE,
-                      GATT_NOTIFY_ATTRIBUTE_WRITE, /* gattEvtMask */
+                      0, /* gattEvtMask */
                       10, /* encryKeySize */
                       1, /* isVariable: 1 */
                       &(aPeerToPeerContext.P2PNotifyServerToClientCharHdle));
@@ -259,7 +263,11 @@ void P2PS_STM_Init(void)
                       0,
                       &(aPeerToPeerContext.RebootReqCharHdle));
 #endif    
-
+    APP_DBG_MSG("STM handles: svc=0x%x write=0x%x notify=0x%x cccd=0x%x\r\n",
+                aPeerToPeerContext.PeerToPeerSvcHdle,
+                aPeerToPeerContext.P2PWriteClientToServerCharHdle,
+                aPeerToPeerContext.P2PNotifyServerToClientCharHdle,
+                aPeerToPeerContext.P2PNotifyServerToClientCharHdle + 2);
     
   return;
 }

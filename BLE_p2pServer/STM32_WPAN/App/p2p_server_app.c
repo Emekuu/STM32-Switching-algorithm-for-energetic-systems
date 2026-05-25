@@ -25,7 +25,7 @@
 #include "ble.h"
 #include "p2p_server_app.h"
 #include "stm32_seq.h"
-
+#include "btmetrics.h"
 #include <string.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -62,7 +62,18 @@ typedef struct __attribute__((packed))
 
 /* Private defines ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+static uint8_t BLEMetricsChecksum(const uint8_t *data, uint8_t len)
+{
+  uint8_t sum = 0;
+  uint8_t i;
 
+  for (i = 0; i < len; i++)
+  {
+    sum ^= data[i];
+  }
+
+  return sum;
+}
 /* USER CODE END PD */
 
 /* Private macros -------------------------------------------------------------*/
@@ -74,7 +85,7 @@ typedef struct __attribute__((packed))
 /* USER CODE BEGIN PV */
 static uint32_t s_lab_last_tx_ms = 0U;
 static uint8_t  s_lab_notify_enabled = 0U;
-
+static BLEMetricsFrame_t s_ble_tx;
 static uint32_t s_lab_seq = 0U;
 /**
  * START of Section BLE_APP_CONTEXT
@@ -91,7 +102,7 @@ static P2P_Server_App_Context_t P2P_Server_App_Context;
 /* USER CODE BEGIN PFP */
 static void P2PS_Send_Notification(void);
 static void P2PS_APP_LED_BUTTON_context_Init(void);
-static void LAB_BuildPayload(lab_test_hdr_t *hdr);
+static void LAB_BuildPayload(BLEMetricsFrame_t *hdr);
 void LAB_SendTestNotification(void);
 void LAB_Process(void);
 /* USER CODE END PFP */
@@ -118,6 +129,7 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 
     case P2PS_STM__NOTIFY_ENABLED_EVT:
 /* USER CODE BEGIN P2PS_STM__NOTIFY_ENABLED_EVT */
+    	APP_DBG_MSG("HIT P2PS_STM__NOTIFY_ENABLED_EVT\r\n");
       P2P_Server_App_Context.Notification_Status = 1;
       APP_DBG_MSG("-- P2P APPLICATION SERVER : NOTIFICATION ENABLED\n"); 
       APP_DBG_MSG(" \n\r");
@@ -315,7 +327,7 @@ void P2PS_APP_Init(void)
 	s_lab_notify_enabled = 0U;
 	s_lab_last_tx_ms = 0U;
 	s_lab_seq = 0U;
-  UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, P2PS_Send_Notification );
+	UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, LAB_SendTestNotification );
 
   s_lab_notify_enabled = 0U;
   /**
@@ -385,6 +397,10 @@ void P2PS_APP_SW1_Button_Action(void)
  *
  *************************************************************/
 /* USER CODE BEGIN FD_LOCAL_FUNCTIONS*/
+uint8_t LAB_IsNotifyEnabled(void)
+{
+  return s_lab_notify_enabled;
+}
 void P2PS_Send_Notification(void)
 {
  
@@ -417,6 +433,7 @@ void LAB_Process(void)
     if ((now - s_lab_last_tx_ms) >= 200U)
     {
         s_lab_last_tx_ms = now;
+        APP_DBG_MSG("SERVER: sending metrics\r\n");
         LAB_SendTestNotification();
     }
 }
@@ -430,32 +447,42 @@ void Moje_Stlacenie_Tlacidla(void)
   // Zmenili sme P2P_SWITCH_CHAR_UUID na P2P_NOTIFY_CHAR_UUID
   P2PS_STM_App_Update_Char(P2P_NOTIFY_CHAR_UUID, (uint8_t *)&update_data);
 }
-static void LAB_BuildPayload(lab_test_hdr_t *hdr)
+static void LAB_BuildPayload(BLEMetricsFrame_t *hdr)
 {
   if (hdr == NULL)
   {
     return;
   }
 
-  hdr->seq = s_lab_seq++;
-  hdr->tx_ts_ms = HAL_GetTick();
-  hdr->path_id = 1U;
+  hdr->header = 0xA5;
+  hdr->rssi = -65;
+  hdr->loss_permille = 15;
+  hdr->rtt_ms = 42;
+  hdr->jitter_ms = 3;
   hdr->reserved[0] = 0U;
   hdr->reserved[1] = 0U;
   hdr->reserved[2] = 0U;
+  hdr->checksum = BLEMetricsChecksum((const uint8_t *)hdr, sizeof(BLEMetricsFrame_t) - 1);
 }
 
 void LAB_SendTestNotification(void)
 {
-  lab_test_hdr_t hdr;
-
   if (s_lab_notify_enabled == 0U)
   {
+	  APP_DBG_MSG("SERVER: notify disabled\r\n");
     return;
   }
 
-  LAB_BuildPayload(&hdr);
-  P2PS_STM_App_Update_Char(P2P_NOTIFY_CHAR_UUID, (uint8_t *)&hdr);
+  LAB_BuildPayload(&s_ble_tx);
+  APP_DBG_MSG("SERVER TX: hdr=0x%02X rssi=%d loss=%u rtt=%u jitter=%u crc=0x%02X\r\n",
+                s_ble_tx.header,
+                s_ble_tx.rssi,
+                s_ble_tx.loss_permille,
+                s_ble_tx.rtt_ms,
+                s_ble_tx.jitter_ms,
+                s_ble_tx.checksum);
+
+  P2PS_STM_App_Update_Char(P2P_NOTIFY_CHAR_UUID, (uint8_t *)&s_ble_tx);
 }
 
 

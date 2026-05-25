@@ -29,7 +29,7 @@ static ComStatus_t Eth_Init(void) {
 
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(12345);
+    servaddr.sin_port = htons(5005);
     servaddr.sin_addr.s_addr = inet_addr("192.168.0.131");
 
     Eth_UpdateSecurityStatus();

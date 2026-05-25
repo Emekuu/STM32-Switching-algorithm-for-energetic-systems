@@ -6,7 +6,7 @@
 #include "eth_rx_types.h"
 #include "eth_parser.h"
 #include "link_types.h"
-
+typedef int _rx_metrics_guard_t;
 void Metrics_Reset(rx_metrics_t *m);
 
 void Metrics_OnFrameReceived(rx_metrics_t *m,

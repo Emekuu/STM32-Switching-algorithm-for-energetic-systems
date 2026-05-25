@@ -1,20 +1,14 @@
-#ifndef ETH_RX_TYPES_H
-#define ETH_RX_TYPES_H
+
+#ifndef APP_ETH_RX_TYPES_H_
+#define APP_ETH_RX_TYPES_H_
+
 #include "link_types.h"
 #include <stdint.h>
 
 #define JITTER_WINDOW_SIZE 32U
 #define LOSS_WINDOW_SIZE   32U
 
-
-typedef struct
-{
-    uint32_t seq;
-    uint32_t tx_ts_ms;
-    uint16_t payload_len;
-    uint8_t  path_id;
-    uint8_t  has_tx_ts;
-} generic_frame_info_t;
+#include "eth_parser.h"
 
 typedef struct
 {
@@ -44,4 +38,4 @@ typedef struct
     uint8_t  loss_window_count;
 } rx_metrics_t;
 
-#endif /* ETH_RX_TYPES_H */
+#endif /* APP_ETH_RX_TYPES_H_ */
