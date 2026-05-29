@@ -1,5 +1,6 @@
-#ifndef DECISION_H
-#define DECISION_H
+#ifndef D_DECISION_H
+#define D_DECISION_H
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,7 +21,7 @@ typedef enum
     DECISION_ALG_LOWEST_LATENCY = 0,
     DECISION_ALG_WEIGHTED_SCORE,
     DECISION_ALG_SECURITY_FIRST,
-	DECISION_ALG_THRESHOLD_WEIGHTED
+    DECISION_ALG_THRESHOLD_WEIGHTED
 } decision_algorithm_t;
 
 typedef struct
@@ -28,7 +29,7 @@ typedef struct
     decision_algorithm_t algorithm;
     security_policy_t security_policy;
 
-    uint32_t max_rtt_ms;
+    uint32_t max_delay_ms;
     uint32_t max_jitter_ms;
     uint32_t max_loss_permille;
 
@@ -38,11 +39,11 @@ typedef struct
     int32_t weight_signal;
     int32_t weight_security;
 
-    uint32_t threshold_rtt_ms;
+    uint32_t threshold_delay_ms;
     uint32_t threshold_jitter_ms;
     uint32_t threshold_loss_permille;
 
-    uint32_t recovery_rtt_ms;
+    uint32_t recovery_delay_ms;
     uint32_t recovery_jitter_ms;
     uint32_t recovery_loss_permille;
 
@@ -61,4 +62,4 @@ decision_result_t decision_select_link(const link_info_t *links,
                                        uint32_t link_count,
                                        const decision_config_t *config);
 
-#endif /* DECISION_H */
+#endif /* D_DECISION_H */

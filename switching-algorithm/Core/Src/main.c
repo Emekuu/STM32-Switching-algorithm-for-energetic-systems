@@ -19,7 +19,7 @@
 #include "lwip/sys.h"
 #include "lwip/stats.h"
 #include "lwip/udp.h"
-
+#include "d_decision.h"
 #include <stdio.h>
 #include <string.h>
 #include "drv_bt.h"
@@ -54,11 +54,11 @@ extern ComInterface_t EthernetInterface;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+static uint8_t i2c_rx_buf[32];
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
+static osThreadId g_i2c_task_handle = NULL;
 I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
@@ -70,7 +70,8 @@ osThreadId eth_taskHandle;
 /* USER CODE BEGIN PV */
 static uint8_t g_rs485_ready = 0U;
 static struct udp_pcb *g_rx_pcb = NULL;
-
+static volatile uint8_t g_i2c_rx_done = 0;
+static volatile uint16_t i2c_rx_buf_len = 0;
 static rx_metrics_t g_rx_direct;
 static rx_metrics_t g_rx_plc;
 static rx_metrics_t g_rx_bt;
@@ -168,6 +169,7 @@ static rx_metrics_t *Eth_GetMetricsByPath(uint8_t path_id)
     }
 }
 
+
 static link_type_t Eth_GetLinkTypeByPath(uint8_t path_id)
 {
     switch ((path_id_t)path_id)
@@ -180,6 +182,36 @@ static link_type_t Eth_GetLinkTypeByPath(uint8_t path_id)
     }
 }
 
+static void I2C_BusProbe(void)
+{
+    GPIO_InitTypeDef g = {0};
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    /* Test 1: pull-down — externý pull-up to prekoná ak existuje */
+    g.Pin  = GPIO_PIN_8 | GPIO_PIN_9;
+    g.Mode = GPIO_MODE_INPUT;
+    g.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOB, &g);
+    HAL_Delay(10);
+    uint8_t scl_pd = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8);
+    uint8_t sda_pd = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9);
+
+    /* Test 2: pull-up — ak externý GND drží linie, uvidíš 0 */
+    g.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOB, &g);
+    HAL_Delay(10);
+    uint8_t scl_pu = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8);
+    uint8_t sda_pu = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9);
+
+    printf("[BUS_PROBE] PULLDOWN: SCL=%u SDA=%u\r\n", scl_pd, sda_pd);
+    printf("[BUS_PROBE] PULLUP:   SCL=%u SDA=%u\r\n", scl_pu, sda_pu);
+
+    /* Vrat na AF4 */
+    g.Mode      = GPIO_MODE_AF_OD;
+    g.Pull      = GPIO_NOPULL;
+    g.Alternate = GPIO_AF4_I2C1;
+    HAL_GPIO_Init(GPIOB, &g);
+}
 
 static void Eth_RxInit(void)
 {
@@ -210,8 +242,61 @@ static void Eth_RxInit(void)
     printf("[RX] UDP receiver ready on port 5005\r\n");
 }
 
-/* USER CODE END 0 */
+static void F7_I2C_SlavePoll(void)
+{
+  HAL_StatusTypeDef ret;
 
+  ret = HAL_I2C_Slave_Receive(&hi2c1, i2c_rx_buf, 12, 100);
+
+  if (ret == HAL_OK)
+  {
+    char msg[128];
+    int n = snprintf(msg, sizeof(msg),
+                     "I2C RX: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+                     i2c_rx_buf[0], i2c_rx_buf[1], i2c_rx_buf[2], i2c_rx_buf[3],
+                     i2c_rx_buf[4], i2c_rx_buf[5], i2c_rx_buf[6], i2c_rx_buf[7],
+                     i2c_rx_buf[8], i2c_rx_buf[9], i2c_rx_buf[10], i2c_rx_buf[11]);
+
+    HAL_UART_Transmit(&huart3, (uint8_t *)msg, n, HAL_MAX_DELAY);
+  }
+  else
+  {
+    uint32_t err = HAL_I2C_GetError(&hi2c1);
+    printf("[F7 I2C] recv err: ret=%d err=0x%08lX\r\n", ret, (unsigned long)err);
+  }
+}
+static void F7_ReadSCL(void)
+{
+    GPIO_InitTypeDef g = {0};
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    g.Pin  = GPIO_PIN_8;
+    g.Mode = GPIO_MODE_INPUT;
+    g.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOB, &g);
+
+    for (int i = 0; i < 20; i++)
+    {
+        printf("[F7] PB8=%u\r\n", HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8));
+        HAL_Delay(200);
+    }
+
+    g.Mode      = GPIO_MODE_AF_OD;
+    g.Pull      = GPIO_NOPULL;
+    g.Alternate = GPIO_AF4_I2C1;
+    HAL_GPIO_Init(GPIOB, &g);
+}
+/* USER CODE END 0 */
+void I2C_SlaveIT_Start(void)
+{
+    HAL_StatusTypeDef ret = HAL_I2C_Slave_Receive_IT(&hi2c1, i2c_rx_buf, 12);
+    // Manuálne enable address match interrupt
+    I2C1->CR1 |= I2C_CR1_ADDRIE;
+    char msg[48];
+    int n = snprintf(msg, sizeof(msg), "[I2C] Start ret=%d CR1=0x%08lX\r\n",
+                     ret, (unsigned long)I2C1->CR1);
+    HAL_UART_Transmit(&huart3, (uint8_t*)msg, n, 1000);
+}
 /**
   * @brief  The application entry point.
   * @retval int
@@ -250,7 +335,13 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART3_UART_Init();
+
+  I2C_BusProbe();
   MX_I2C1_Init();
+  uint32_t oar1 = I2C1->OAR1;
+   printf("[F7] OAR1 register = 0x%08lX\r\n", (unsigned long)oar1);
+
+  printf("[F7] OwnAddress1=0x%02lX\r\n", (unsigned long)hi2c1.Init.OwnAddress1);
   /* USER CODE BEGIN 2 */
   MX_ETH_Init();
   App_InitLinks();
@@ -286,6 +377,9 @@ int main(void)
   /* definition and creation of eth_task */
   osThreadDef(eth_task, eth_taskENTRY, osPriorityBelowNormal, 0, 1024);
   eth_taskHandle = osThreadCreate(osThread(eth_task), NULL);
+  osThreadDef(rs_task, rs_taskENTRY, osPriorityNormal, 0, 1024);
+  rs_taskHandle = osThreadCreate(osThread(rs_task), NULL);
+
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -368,6 +462,8 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
+
+
 static void MX_I2C1_Init(void)
 {
 
@@ -379,8 +475,8 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x20404768;
-  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.Timing = 0x10909CEC;
+  hi2c1.Init.OwnAddress1 = 0x24;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -391,7 +487,10 @@ static void MX_I2C1_Init(void)
   {
     Error_Handler();
   }
-
+  HAL_NVIC_SetPriority(I2C1_EV_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
+  HAL_NVIC_SetPriority(I2C1_ER_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
   /** Configure Analogue filter
   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
@@ -406,7 +505,7 @@ static void MX_I2C1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN I2C1_Init 2 */
-
+  printf("[F7] I2C OwnAddress1=0x%02lX\r\n", (unsigned long)hi2c1.Init.OwnAddress1);
   /* USER CODE END I2C1_Init 2 */
 
 }
@@ -416,6 +515,8 @@ static void MX_I2C1_Init(void)
   * @param None
   * @retval None
   */
+
+
 static void MX_USART3_UART_Init(void)
 {
 
@@ -520,16 +621,16 @@ static void App_UpdateBtLink(void)
         bt_link->metrics.measurement_valid = false;
         bt_link->metrics.packet_loss_permille = 1000U;
         bt_link->metrics.jitter_ms = 0U;
-        bt_link->metrics.rtt_ms = 1000U;
+        bt_link->metrics.delay_ms = 1000U;
         bt_link->metrics.signal_dbm = -128;
         return;
     }
 
-    printf("[BT] avail=%u rssi=%d loss=%u rtt=%u jitter=%u\r\n",
+    printf("[BT_RAW] avail=%u rssi=%d loss=%u rtt=%u jitter=%u\r\n",
            (unsigned)btm.available,
            (int)btm.rssi,
            (unsigned)btm.pkt_error_rate,
-           (unsigned)btm.rtt_ms,
+           (unsigned)btm.delay_ms,
            (unsigned)btm.jitter_ms);
 
     bt_link->metrics.measurement_valid = (btm.available != 0U);
@@ -543,15 +644,23 @@ static void App_UpdateBtLink(void)
     if (btm.available)
     {
         bt_link->state = LINK_STATE_UP;
-        bt_link->metrics.rtt_ms    = btm.rtt_ms;
+        bt_link->metrics.delay_ms    = btm.delay_ms;
         bt_link->metrics.jitter_ms = btm.jitter_ms;
     }
     else
     {
         bt_link->state = LINK_STATE_DOWN;
-        bt_link->metrics.rtt_ms = 1000U;
+        bt_link->metrics.delay_ms = 1000U;
         bt_link->metrics.jitter_ms = 0U;
     }
+
+    printf("[BT_LINK] valid=%u state=%d rtt=%lu loss=%lu jitter=%lu signal=%d\r\n",
+           (unsigned)bt_link->metrics.measurement_valid,
+           bt_link->state,
+           (unsigned long)bt_link->metrics.delay_ms,
+           (unsigned long)bt_link->metrics.packet_loss_permille,
+           (unsigned long)bt_link->metrics.jitter_ms,
+           (int)bt_link->metrics.signal_dbm);
 }
 static void App_UpdateEthLinkHealth(void)
 {
@@ -573,7 +682,7 @@ static void App_UpdateEthLinkHealth(void)
         eth_direct->metrics.measurement_valid = false;
         eth_direct->metrics.packet_loss_permille = 1000U;
         eth_direct->metrics.jitter_ms = 0U;
-        eth_direct->metrics.rtt_ms = 1000U;
+        eth_direct->metrics.delay_ms = 1000U;
     }
 
     if (Metrics_IsTimedOut(&g_rx_plc, now, timeout_ms) && (eth_plc != NULL))
@@ -582,7 +691,7 @@ static void App_UpdateEthLinkHealth(void)
         eth_plc->metrics.measurement_valid = false;
         eth_plc->metrics.packet_loss_permille = 1000U;
         eth_plc->metrics.jitter_ms = 0U;
-        eth_plc->metrics.rtt_ms = 1000U;
+        eth_plc->metrics.delay_ms = 1000U;
     }
 }
 static void Eth_UdpRecvCallback(void *arg,
@@ -623,18 +732,20 @@ static void Eth_UdpRecvCallback(void *arg,
                 Metrics_OnFrameReceived(metrics, &frame, now_ms);
                 Metrics_ApplyToLink(link, metrics);
 
-                printf("[RX] path=%u seq=%lu len=%lu loss=%lu permille jitter=%lu ms tp=%lu bps\r\n",
+                printf("[RX] path=%u seq=%lu len=%lu raw_diff=%ld ms delay=%lu ms loss=%lu permille jitter=%lu ms tp=%lu bps\r\n",
                        (unsigned int)frame.path_id,
                        (unsigned long)frame.seq,
                        (unsigned long)frame.payload_len,
+                       (long)metrics->delay_raw_ms,
+                       (unsigned long)metrics->delay_rel_ms,
                        (unsigned long)link->metrics.packet_loss_permille,
                        (unsigned long)Metrics_GetJitterMs(metrics),
                        (unsigned long)Metrics_GetThroughputBps(metrics));
-
                 /* <<< TOTO JE PRE LOGGER >>> */
-                printf("CSV,%lu,%u,%lu,%lu,%lu,%lu\r\n",
+                printf("CSV,%lu,%u,%lu,%lu,%lu,%lu,%lu\r\n",
                        (unsigned long)now_ms,
                        (unsigned int)frame.path_id,
+                       (unsigned long)Metrics_GetDelayRelMs(metrics),
                        (unsigned long)link->metrics.packet_loss_permille,
                        (unsigned long)Metrics_GetJitterMs(metrics),
                        (unsigned long)Metrics_GetThroughputBps(metrics),
@@ -692,22 +803,7 @@ static void App_UpdateRsPath(uint8_t eth_ok)
     }
 }
 
-void rs_taskENTRY(void const * argument)
-{
-    (void)argument;
 
-    printf("[RS485] Task started\r\n");
-
-    for (;;)
-    {
-        if (g_rs485_ready)
-        {
-            /*request/reply polling through RS485 */
-        }
-
-        osDelay(200);
-    }
-}
 
 static void MX_ETH_Init(void)
 {
@@ -743,26 +839,37 @@ static void App_InitLinks(void)
 {
     memset(g_links, 0, sizeof(g_links));
 
-    /* Bluetooth link */
     g_links[0].type = LINK_BLUETOOTH;
     g_links[0].enabled = true;
     g_links[0].state = LINK_STATE_DOWN;
+    g_links[0].thresholds.max_loss_percent       = 30U;
+    g_links[0].thresholds.threshold_loss_percent = 15U;
+    g_links[0].thresholds.threshold_delay_ms       = 200U;
+    g_links[0].thresholds.threshold_jitter_ms    = 50U;
 
-    /* Ethernet DIRECT link */
     g_links[1].type = LINK_ETH_DIRECT;
     g_links[1].enabled = true;
     g_links[1].state = LINK_STATE_DOWN;
+    g_links[1].thresholds.max_loss_percent       = 5U;
+    g_links[1].thresholds.threshold_loss_percent = 2U;
+    g_links[1].thresholds.threshold_delay_ms       = 50U;
+    g_links[1].thresholds.threshold_jitter_ms    = 10U;
 
-    /* Ethernet PLC link */
     g_links[2].type = LINK_ETH_PLC;
     g_links[2].enabled = true;
     g_links[2].state = LINK_STATE_DOWN;
+    g_links[2].thresholds.max_loss_percent       = 10U;
+    g_links[2].thresholds.threshold_loss_percent = 5U;
+    g_links[2].thresholds.threshold_delay_ms       = 100U;
+    g_links[2].thresholds.threshold_jitter_ms    = 25U;
 
-    /* RS485 link */
     g_links[3].type = LINK_RS485;
     g_links[3].enabled = true;
     g_links[3].state = LINK_STATE_DOWN;
-
+    g_links[3].thresholds.max_loss_percent       = 10U;
+    g_links[3].thresholds.threshold_loss_percent = 5U;
+    g_links[3].thresholds.threshold_delay_ms       = 150U;
+    g_links[3].thresholds.threshold_jitter_ms    = 30U;
 }
 
 static void App_InitDecisionConfig(void)
@@ -770,7 +877,7 @@ static void App_InitDecisionConfig(void)
     g_decision_cfg.algorithm = DECISION_ALG_WEIGHTED_SCORE;
     g_decision_cfg.security_policy = SECURITY_PREFERRED;
 
-    g_decision_cfg.max_rtt_ms = 1000U;
+    g_decision_cfg.max_delay_ms = 1000U;
     g_decision_cfg.max_jitter_ms = 300U;
     g_decision_cfg.max_loss_permille = 1000U;
 
@@ -780,11 +887,11 @@ static void App_InitDecisionConfig(void)
     g_decision_cfg.weight_signal = 1;
     g_decision_cfg.weight_security = 2;
 
-    g_decision_cfg.threshold_rtt_ms = 300U;
+    g_decision_cfg.threshold_delay_ms = 300U;
     g_decision_cfg.threshold_jitter_ms = 100U;
     g_decision_cfg.threshold_loss_permille = 300U;
 
-    g_decision_cfg.recovery_rtt_ms = 150U;
+    g_decision_cfg.recovery_delay_ms = 150U;
     g_decision_cfg.recovery_jitter_ms = 50U;
     g_decision_cfg.recovery_loss_permille = 100U;
 
@@ -865,16 +972,16 @@ static void App_RunDecision(void)
 
     printf("[LINKS] BT(rtt=%lu loss=%lu state=%d) | ETH_DIR(rtt=%lu loss=%lu state=%d) | "
            "ETH_PLC(rtt=%lu loss=%lu state=%d) | RS(rtt=%lu loss=%lu state=%d)\r\n",
-           (unsigned long)g_links[0].metrics.rtt_ms,
+           (unsigned long)g_links[0].metrics.delay_ms,
            (unsigned long)g_links[0].metrics.packet_loss_permille,
            g_links[0].state,
-           (unsigned long)g_links[1].metrics.rtt_ms,
+           (unsigned long)g_links[1].metrics.delay_ms,
            (unsigned long)g_links[1].metrics.packet_loss_permille,
            g_links[1].state,
-           (unsigned long)g_links[2].metrics.rtt_ms,
+           (unsigned long)g_links[2].metrics.delay_ms,
            (unsigned long)g_links[2].metrics.packet_loss_permille,
            g_links[2].state,
-           (unsigned long)g_links[3].metrics.rtt_ms,
+           (unsigned long)g_links[3].metrics.delay_ms,
            (unsigned long)g_links[3].metrics.packet_loss_permille,
            g_links[3].state);
 
@@ -915,7 +1022,7 @@ static void App_UpdateRsStub(uint8_t eth_ok)
     if (eth_ok)
     {
         rs_link->state = LINK_STATE_UP;
-        rs_link->metrics.rtt_ms = 140U;
+        rs_link->metrics.delay_ms = 140U;
         rs_link->metrics.jitter_ms = 25U;
         rs_link->metrics.packet_loss_permille = 120U;
         rs_link->metrics.signal_dbm = 0;
@@ -923,7 +1030,7 @@ static void App_UpdateRsStub(uint8_t eth_ok)
     else
     {
         rs_link->state = LINK_STATE_UP;
-        rs_link->metrics.rtt_ms = 70U;
+        rs_link->metrics.delay_ms = 70U;
         rs_link->metrics.jitter_ms = 10U;
         rs_link->metrics.packet_loss_permille = 20U;
         rs_link->metrics.signal_dbm = 0;
@@ -931,6 +1038,40 @@ static void App_UpdateRsStub(uint8_t eth_ok)
 }
 
 
+
+
+void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c,
+                          uint8_t TransferDirection,
+                          uint16_t AddrMatchCode)
+{
+    (void)AddrMatchCode;
+    if (hi2c->Instance != I2C1) return;
+
+    if (TransferDirection == I2C_DIRECTION_TRANSMIT)
+    {
+        i2c_rx_buf_len = 12;  // ← pridaj toto
+        HAL_I2C_Slave_Seq_Receive_IT(hi2c, i2c_rx_buf, 12, I2C_LAST_FRAME);
+    }
+}
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+    if (hi2c->Instance != I2C1) return;
+    g_i2c_rx_done = 1;
+
+}
+
+void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+    if (hi2c->Instance != I2C1) return;
+    HAL_I2C_EnableListen_IT(hi2c);
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+{
+    if (hi2c->Instance != I2C1) return;
+    printf("[I2C ERR] 0x%08lX\r\n", (unsigned long)HAL_I2C_GetError(hi2c));
+    HAL_I2C_EnableListen_IT(hi2c);
+}
 
 
 
@@ -946,38 +1087,136 @@ static void App_UpdateRsStub(uint8_t eth_ok)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
+typedef struct __attribute__((packed))
+{
+    uint32_t seq;
+    uint32_t tx_ts_ms;
+    uint8_t  path_id;
+    uint8_t  reserved[3];
+} lab_test_hdr_t;
+
+void rs_taskENTRY(void const * argument)
+{
+    g_i2c_task_handle = osThreadGetId();
+    Metrics_Reset(&g_rx_bt);
+    HAL_I2C_EnableListen_IT(&hi2c1);
+    printf("[I2C TASK] started\r\n");
+
+    static uint32_t bt_rx_count = 0U;
+    static uint32_t last_fwd_seq = 0U;
+    uint32_t last_rx_tick = 0U;
+
+    for (;;)
+    {
+        if (g_i2c_rx_done)
+        {
+            g_i2c_rx_done = 0U;
+
+            last_rx_tick = HAL_GetTick();
+            bt_rx_count++;
+            printf("[BT_COUNT] %lu\r\n", (unsigned long)bt_rx_count);
+
+            if (i2c_rx_buf_len >= sizeof(lab_test_hdr_t))
+            {
+                const lab_test_hdr_t *hdr = (const lab_test_hdr_t *)i2c_rx_buf;
+                uint32_t now_tick = HAL_GetTick();
+
+                if ((hdr->seq < last_fwd_seq) && (last_fwd_seq > 100U))
+                {
+                    printf("[BT] server restart detected, resetting metrics\r\n");
+                    Metrics_Reset(&g_rx_bt);
+                }
+                last_fwd_seq = hdr->seq;
+                printf("[BT_HDR] seq=%lu path=%u len=%u\n",
+                       (unsigned long)hdr->seq,
+                       (unsigned)hdr->path_id,
+                       (unsigned)i2c_rx_buf_len);
+                generic_frame_info_t info;
+                memset(&info, 0, sizeof(info));
+                info.seq         = hdr->seq;
+                info.tx_ts_ms    = 0U;
+                info.payload_len = i2c_rx_buf_len;
+                info.path_id     = PATH_BT;     /* natvrdo BT */
+                info.has_tx_ts   = 0U;
+
+                Metrics_OnFrameReceived(&g_rx_bt, &info, now_tick);
+                Metrics_ApplyToLink(App_GetLink(LINK_BLUETOOTH), &g_rx_bt);
+
+                {
+                    link_info_t *bt_link = App_GetLink(LINK_BLUETOOTH);
+                    if (bt_link != NULL)
+                    {
+                        printf("[BT_LINK_DBG] seq=%lu valid=%u state=%d delay=%lu loss=%lu jitter=%lu\r\n",
+                               (unsigned long)hdr->seq,
+                               (unsigned)bt_link->metrics.measurement_valid,
+                               bt_link->state,
+                               (unsigned long)bt_link->metrics.delay_ms,
+                               (unsigned long)bt_link->metrics.packet_loss_permille,
+                               (unsigned long)bt_link->metrics.jitter_ms);
+                    }
+                }
+
+                App_RunDecision();
+            }
+            else
+            {
+                printf("[BT] short frame len=%u\r\n", (unsigned)i2c_rx_buf_len);
+            }
+        }
+
+        if ((HAL_GetTick() - last_rx_tick) > 2000U)
+        {
+            last_rx_tick = HAL_GetTick();
+            HAL_I2C_EnableListen_IT(&hi2c1);
+        }
+
+        osDelay(10);
+    }
+}
 void StartDefaultTask(void const * argument)
 {
-  /* init code for LWIP */
-  MX_LWIP_Init();
-  /* USER CODE BEGIN 5 */
-	  Eth_RxInit();
-	  App_PrintNetifInfo();
-	  printf("LWIP OK!\r\n");
+    MX_LWIP_Init();
+    Eth_RxInit();
+    App_PrintNetifInfo();
+    printf("LWIP OK!\r\n");
 
-	  for(;;)
-	  {
-	    uint8_t eth_ok = 0U;
-	    uint32_t now = HAL_GetTick();
-	    const uint32_t timeout_ms = 2000U;
+    for(;;)
+    {
+    	  uint8_t eth_ok = 0U;
+    	    uint32_t now = HAL_GetTick();
+    	    const uint32_t timeout_ms = 2000U;
 
-	    App_UpdateEthLinkHealth();
-	    App_MaybeHardResetEthMetrics(now);
-	    if (!Metrics_IsTimedOut(&g_rx_direct, now, timeout_ms) ||
-	        !Metrics_IsTimedOut(&g_rx_plc, now, timeout_ms))
-	    {
-	        eth_ok = 1U;
-	    }
+    	    App_UpdateEthLinkHealth();
+    	    App_MaybeHardResetEthMetrics(now);
 
-	    App_UpdateBtLink();
-	    App_UpdateRsPath(eth_ok);
+    	    // ← pridaj toto:
+    	    Metrics_Age(&g_rx_bt, now, timeout_ms);
+    	    Metrics_ApplyToLink(App_GetLink(LINK_BLUETOOTH), &g_rx_bt);
+    	    /* if (Metrics_IsTimedOut(&g_rx_bt, now, timeout_ms))
+    	    {
+    	        link_info_t *bt_link = App_GetLink(LINK_BLUETOOTH);
+    	        if (bt_link != NULL)
+    	        {
+    	            bt_link->state = LINK_STATE_DOWN;
+    	            bt_link->metrics.measurement_valid = false;
+    	            bt_link->metrics.delay_ms = 1000U;
+    	            bt_link->metrics.jitter_ms = 0U;
+    	            bt_link->metrics.packet_loss_permille = 1000U;
+    	        }
+    	        Metrics_Reset(&g_rx_bt);
+    	    }*/
+    	    Metrics_Reset(&g_rx_bt);
+    	    if (!Metrics_IsTimedOut(&g_rx_direct, now, timeout_ms) ||
+    	        !Metrics_IsTimedOut(&g_rx_plc, now, timeout_ms))
+    	    {
+    	        eth_ok = 1U;
+    	    }
 
-	    App_RunDecision();
-	    osDelay(100);
-	  }
-  /* USER CODE END 5 */
+    	    App_UpdateRsPath(eth_ok);
+    	    App_RunDecision();
+    	    osDelay(100);
+    }
 }
-
 /* USER CODE BEGIN Header_eth_taskENTRY */
 /**
 * @brief Function implementing the eth_task thread.

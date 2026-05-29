@@ -44,7 +44,7 @@ HAL_StatusTypeDef BT_I2C_ReadMetrics(bt_i2c_metrics_t *m)
         m->available      = 0U;
         m->rssi           = -128;
         m->pkt_error_rate = 1000U;
-        m->rtt_ms         = 0U;
+        m->delay_ms         = 0U;
         m->jitter_ms      = 0U;
         return ret;
     }
@@ -65,7 +65,7 @@ HAL_StatusTypeDef BT_I2C_ReadMetrics(bt_i2c_metrics_t *m)
         m->available      = 0U;
         m->rssi           = -128;
         m->pkt_error_rate = 1000U;
-        m->rtt_ms         = 0U;
+        m->delay_ms         = 0U;
         m->jitter_ms      = 0U;
         return HAL_ERROR;
     }
@@ -74,7 +74,7 @@ HAL_StatusTypeDef BT_I2C_ReadMetrics(bt_i2c_metrics_t *m)
     m->rssi           = (int8_t)g_bt_i2c_rx_frame[1];
     m->pkt_error_rate = ((uint16_t)g_bt_i2c_rx_frame[2] << 8) |
                          (uint16_t)g_bt_i2c_rx_frame[3];
-    m->rtt_ms         = ((uint16_t)g_bt_i2c_rx_frame[4] << 8) |
+    m->delay_ms         = ((uint16_t)g_bt_i2c_rx_frame[4] << 8) |
                          (uint16_t)g_bt_i2c_rx_frame[5];
     m->jitter_ms      = (uint16_t)g_bt_i2c_rx_frame[6];
 

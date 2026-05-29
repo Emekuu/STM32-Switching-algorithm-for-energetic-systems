@@ -1,14 +1,12 @@
-
 #ifndef APP_ETH_RX_TYPES_H_
 #define APP_ETH_RX_TYPES_H_
 
-#include "link_types.h"
 #include <stdint.h>
+#include "link_types.h"
+#include "eth_parser.h"
 
 #define JITTER_WINDOW_SIZE 32U
 #define LOSS_WINDOW_SIZE   32U
-
-#include "eth_parser.h"
 
 typedef struct
 {
@@ -20,8 +18,13 @@ typedef struct
     uint32_t duplicate_packets;
 
     uint32_t last_rx_tick_ms;
-    uint32_t last_tx_ts_ms;
-    uint32_t rtt_ms;
+
+    int32_t  delay_raw_ms;
+    int32_t  last_delay_raw_ms;
+    uint8_t  last_delay_raw_valid;
+
+    uint32_t delay_rel_ms;
+
     uint32_t bytes_in_window;
     uint32_t throughput_bps;
     uint32_t last_tp_tick_ms;

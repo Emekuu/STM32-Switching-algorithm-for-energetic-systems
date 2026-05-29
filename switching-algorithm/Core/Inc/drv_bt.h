@@ -9,7 +9,7 @@ typedef struct {
     uint8_t  available;
     int8_t   rssi;
     uint16_t pkt_error_rate;
-    uint16_t rtt_ms;
+    uint16_t delay_ms;
     uint16_t jitter_ms;
 } bt_i2c_metrics_t;
 

@@ -46,7 +46,7 @@ static bool decision_link_threshold_ok(const link_info_t *link,
     if ((link == NULL) || (config == NULL))
         return false;
 
-    if (link->metrics.rtt_ms > config->threshold_rtt_ms)
+    if (link->metrics.delay_ms > config->threshold_delay_ms)
         return false;
 
     if (link->metrics.jitter_ms > config->threshold_jitter_ms)
@@ -58,15 +58,15 @@ static bool decision_link_threshold_ok(const link_info_t *link,
     return true;
 }
 
-static int32_t decision_score_rtt(uint32_t rtt_ms, uint32_t max_rtt_ms)
+static int32_t decision_score_rtt(uint32_t delay_ms, uint32_t max_delay_ms)
 {
-    if (max_rtt_ms == 0U)
+    if (max_delay_ms == 0U)
         return 0;
 
-    if (rtt_ms >= max_rtt_ms)
+    if (delay_ms >= max_delay_ms)
         return 0;
 
-    return (int32_t)((1000U * (max_rtt_ms - rtt_ms)) / max_rtt_ms);
+    return (int32_t)((1000U * (max_delay_ms - delay_ms)) / max_delay_ms);
 }
 
 static int32_t decision_score_jitter(uint32_t jitter_ms, uint32_t max_jitter_ms)
@@ -106,7 +106,7 @@ static int32_t decision_calculate_weighted_score(const link_info_t *link,
 {
     int32_t score = 0;
 
-    score += decision_score_rtt(link->metrics.rtt_ms, config->max_rtt_ms) *
+    score += decision_score_rtt(link->metrics.delay_ms, config->max_delay_ms) *
              config->weight_rtt;
 
     score += decision_score_jitter(link->metrics.jitter_ms, config->max_jitter_ms) *
@@ -178,9 +178,9 @@ static decision_result_t decision_select_lowest_latency(const link_info_t *links
         if (!decision_link_security_allowed(&links[i], config->security_policy))
             continue;
 
-        if (links[i].metrics.rtt_ms < best_rtt)
+        if (links[i].metrics.delay_ms < best_rtt)
         {
-            best_rtt = links[i].metrics.rtt_ms;
+            best_rtt = links[i].metrics.delay_ms;
             result.valid = true;
             result.selected_link = links[i].type;
             result.selected_score = (int32_t)(100000U - best_rtt);

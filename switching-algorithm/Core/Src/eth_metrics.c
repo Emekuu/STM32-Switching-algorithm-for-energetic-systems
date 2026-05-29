@@ -1,5 +1,6 @@
 #include "eth_metrics.h"
 #include <string.h>
+#include <stdio.h>
 
 static void Metrics_JitterWindowPush(rx_metrics_t *m, uint32_t variation_ms)
 {
@@ -59,31 +60,37 @@ void Metrics_Reset(rx_metrics_t *m)
 
     memset(m, 0, sizeof(*m));
 }
-
 void Metrics_OnFrameReceived(rx_metrics_t *m,
                              const generic_frame_info_t *f,
                              uint32_t rx_tick_ms)
 {
-	printf("[DBG_RTT] seq=%lu has_ts=%u tx=%lu rx=%lu\n",
-	       (unsigned long)f->seq,
-	       (unsigned)f->has_tx_ts,
-	       (unsigned long)f->tx_ts_ms,
-	       (unsigned long)rx_tick_ms);
     if ((m == NULL) || (f == NULL))
         return;
+
+    int32_t sample_ms = 0;
+    uint8_t sample_valid = 0U;
+
     if (f->has_tx_ts)
     {
-        int32_t rtt = (int32_t)rx_tick_ms - (int32_t)f->tx_ts_ms;
-        if (rtt < 0)
-            rtt = 0;
+        sample_ms = (int32_t)rx_tick_ms - (int32_t)f->tx_ts_ms;
+        sample_valid = 1U;
 
-        m->rtt_ms = (uint32_t)rtt;
-
-        printf("[DBG_RTT2] seq=%lu rtt=%lu\n",
-                  (unsigned long)f->seq,
-                  (unsigned long)m->rtt_ms);
+        printf("[DBG_DELAY] seq=%lu tx=%lu rx=%lu raw_diff=%ld\r\n",
+               (unsigned long)f->seq,
+               (unsigned long)f->tx_ts_ms,
+               (unsigned long)rx_tick_ms,
+               (long)sample_ms);
     }
+    else if (m->initialized)
+    {
+        sample_ms = (int32_t)(rx_tick_ms - m->last_rx_tick_ms); /* inter-arrival time */
+        sample_valid = 1U;
 
+        printf("[DBG_IAT] seq=%lu rx=%lu iat=%ld\r\n",
+               (unsigned long)f->seq,
+               (unsigned long)rx_tick_ms,
+               (long)sample_ms);
+    }
 
     if (!m->initialized)
     {
@@ -96,7 +103,20 @@ void Metrics_OnFrameReceived(rx_metrics_t *m,
         m->bytes_in_window = f->payload_len;
 
         if (f->has_tx_ts)
-            m->last_tx_ts_ms = f->tx_ts_ms;
+        {
+            m->delay_raw_ms = (int32_t)rx_tick_ms - (int32_t)f->tx_ts_ms;
+            m->last_delay_raw_ms = m->delay_raw_ms;
+            m->last_delay_raw_valid = 1U;
+        }
+        else
+        {
+            m->delay_raw_ms = 0;
+            m->last_delay_raw_ms = 0;
+            m->last_delay_raw_valid = 0U;
+        }
+
+        m->delay_rel_ms = 0U;
+        m->jitter_ms = 0U;
 
         Metrics_LossWindowPush(m, 0U);
         return;
@@ -130,43 +150,51 @@ void Metrics_OnFrameReceived(rx_metrics_t *m,
         return;
     }
 
-    if (f->has_tx_ts && (m->last_tx_ts_ms != 0U))
+    if (sample_valid)
     {
-        uint32_t rx_delta = rx_tick_ms - m->last_rx_tick_ms;
-        uint32_t tx_delta = f->tx_ts_ms - m->last_tx_ts_ms;
+        m->delay_raw_ms = sample_ms;
 
-        int32_t variation = (int32_t)rx_delta - (int32_t)tx_delta;
-        if (variation < 0)
-            variation = -variation;
+        if (m->last_delay_raw_valid)
+        {
+            int32_t rel = sample_ms - m->last_delay_raw_ms;
+            if (rel < 0)
+                rel = -rel;
 
-        Metrics_JitterWindowPush(m, (uint32_t)variation);
+            m->delay_rel_ms = (uint32_t)rel;
+            Metrics_JitterWindowPush(m, m->delay_rel_ms);
+        }
+        else
+        {
+            m->delay_rel_ms = 0U;
+        }
 
-        /* RTT ~ reálny interval medzi rámcami na F7 */
-        m->rtt_ms = rx_delta;
-
-        m->last_tx_ts_ms = f->tx_ts_ms;
-    }
-    else
-    {
-        uint32_t interarrival = rx_tick_ms - m->last_rx_tick_ms;
-        Metrics_JitterWindowPush(m, interarrival);
-        m->rtt_ms = interarrival;
+        m->last_delay_raw_ms = sample_ms;
+        m->last_delay_raw_valid = 1U;
     }
 
     m->last_rx_tick_ms = rx_tick_ms;
-
-    /* Ak chceš throughput len z payloadu, nechaj payload_len.
-       Ak chceš celý custom frame, použi payload_len + 12U. */
     m->bytes_in_window += f->payload_len;
 
-    if ((rx_tick_ms - m->last_tp_tick_ms) >= 1000U)
     {
-        m->throughput_bps = m->bytes_in_window * 8U;
-        m->bytes_in_window = 0U;
-        m->last_tp_tick_ms = rx_tick_ms;
+        uint32_t dt_ms = rx_tick_ms - m->last_tp_tick_ms;
+        if (dt_ms >= 900U)
+        {
+            if (m->bytes_in_window > 0U)
+            {
+                uint64_t bits = (uint64_t)m->bytes_in_window * 8ULL;
+                uint64_t tp = (bits * 1000ULL) / dt_ms;
+                m->throughput_bps = (tp > 0xFFFFFFFFULL) ? 0xFFFFFFFFU : (uint32_t)tp;
+            }
+            else
+            {
+                m->throughput_bps = 0U;
+            }
+
+            m->bytes_in_window = 0U;
+            m->last_tp_tick_ms = rx_tick_ms;
+        }
     }
 }
-
 uint32_t Metrics_GetLossPercent(const rx_metrics_t *m)
 {
     if ((m == NULL) || (m->loss_window_count == 0U))
@@ -175,6 +203,13 @@ uint32_t Metrics_GetLossPercent(const rx_metrics_t *m)
     return (m->loss_window_sum * 100U) / m->loss_window_count;
 }
 
+uint32_t Metrics_GetLossPermille(const rx_metrics_t *m)
+{
+    if ((m == NULL) || (m->loss_window_count == 0U))
+        return 0U;
+
+    return (m->loss_window_sum * 1000U) / m->loss_window_count;
+}
 uint32_t Metrics_GetJitterMs(const rx_metrics_t *m)
 {
     if (m == NULL)
@@ -183,16 +218,27 @@ uint32_t Metrics_GetJitterMs(const rx_metrics_t *m)
     return m->jitter_ms;
 }
 
-static float App_LossPermilleToPercent(uint32_t loss_permille)
-{
-    return ((float)loss_permille) / 10.0f;
-}
 uint32_t Metrics_GetThroughputBps(const rx_metrics_t *m)
 {
     if (m == NULL)
         return 0U;
 
     return m->throughput_bps;
+}
+
+
+int32_t Metrics_GetDelayRawMs(const rx_metrics_t *m)
+{
+    if (m == NULL)
+        return 0;
+    return m->delay_raw_ms;
+}
+
+uint32_t Metrics_GetDelayRelMs(const rx_metrics_t *m)
+{
+    if (m == NULL)
+        return 0U;
+    return m->delay_rel_ms;
 }
 
 void Metrics_ApplyToLink(link_info_t *link, const rx_metrics_t *m)
@@ -208,18 +254,18 @@ void Metrics_ApplyToLink(link_info_t *link, const rx_metrics_t *m)
     {
         link->metrics.measurement_valid = false;
         link->state = LINK_STATE_DOWN;
-        link->metrics.rtt_ms = 1000U;
+        link->metrics.delay_ms = 1000U;
         link->metrics.jitter_ms = 300U;
-        link->metrics.packet_loss_permille = 100U;
+        link->metrics.packet_loss_permille = 1000U;
         return;
     }
 
     link->metrics.measurement_valid = true;
-    link->metrics.rtt_ms = m->rtt_ms;
+    link->metrics.delay_ms = m->delay_rel_ms;
     link->metrics.jitter_ms = Metrics_GetJitterMs(m);
-    link->metrics.packet_loss_permille = Metrics_GetLossPercent(m);
+    link->metrics.packet_loss_permille = Metrics_GetLossPermille(m);
 
-    if (link->metrics.packet_loss_permille >= 30U)
+    if (link->metrics.packet_loss_permille >= 150U)
         link->state = LINK_STATE_DEGRADED;
     else
         link->state = LINK_STATE_UP;
@@ -244,7 +290,4 @@ void Metrics_Age(rx_metrics_t *m, uint32_t now_ms, uint32_t timeout_ms)
         return;
 
     m->throughput_bps = 0U;
-    m->jitter_ms = 0U;
-
-    m->loss_window_sum = m->loss_window_count;
 }

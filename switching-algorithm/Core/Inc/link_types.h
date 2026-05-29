@@ -24,7 +24,7 @@ typedef enum
 typedef struct
 {
     bool     measurement_valid;
-    uint32_t rtt_ms;
+    uint32_t delay_ms;
     uint32_t jitter_ms;
     uint32_t packet_loss_permille;
     int32_t  signal_dbm;
@@ -33,10 +33,19 @@ typedef struct
 
 typedef struct
 {
-    link_type_t    type;
-    bool           enabled;
-    link_state_t   state;
-    link_metrics_t metrics;
+    uint32_t max_loss_percent;
+    uint32_t threshold_loss_percent;
+    uint32_t threshold_delay_ms;
+    uint32_t threshold_jitter_ms;
+} link_thresholds_t;
+
+typedef struct
+{
+    link_type_t       type;
+    bool              enabled;
+    link_state_t      state;
+    link_metrics_t    metrics;
+    link_thresholds_t thresholds;
 } link_info_t;
 
 typedef enum
@@ -58,4 +67,4 @@ typedef struct
 } test_hdr_t;
 #pragma pack(pop)
 
-#endif
+#endif /* LINK_TYPES_H */
