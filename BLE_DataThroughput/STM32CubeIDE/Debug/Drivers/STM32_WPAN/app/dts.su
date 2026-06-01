@@ -1,0 +1,3 @@
+C:/Users/emecc/STM32Cube/Example/BLE_DataThroughput/STM32_WPAN/App/dts.c:93:30:DTS_Event_Handler	56	static,ignoring_inline_asm
+C:/Users/emecc/STM32Cube/Example/BLE_DataThroughput/STM32_WPAN/App/dts.c:256:6:DTS_STM_Init	56	static
+C:/Users/emecc/STM32Cube/Example/BLE_DataThroughput/STM32_WPAN/App/dts.c:343:12:DTS_STM_UpdateChar	32	static

@@ -1,0 +1,3 @@
+../Core/Src/drv_bt.c:14:16:BT_I2C_CalcChecksum	24	static
+../Core/Src/drv_bt.c:27:19:BT_I2C_ReadMetrics	32	static
+../Core/Src/drv_bt.c:84:6:BT_I2C_IsAvailable	16	static

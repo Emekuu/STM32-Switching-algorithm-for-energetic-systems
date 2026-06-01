@@ -1,0 +1,7 @@
+../Core/Src/network_manager.c:20:6:NetMgr_Init	2
+../Core/Src/network_manager.c:29:16:Calculate_Health	3
+../Core/Src/network_manager.c:37:6:NetMgr_UpdateMetrics	3
+../Core/Src/network_manager.c:52:6:NetMgr_Decide	5
+../Core/Src/network_manager.c:69:6:NetMgr_SendData	6
+../Core/Src/network_manager.c:110:9:NetMgr_GetHealth	2
+../Core/Src/network_manager.c:114:13:NetMgr_GetActiveInterface	1

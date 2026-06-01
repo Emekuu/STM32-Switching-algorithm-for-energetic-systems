@@ -1,0 +1,14 @@
+../Core/Src/d_decision.c:10:13:decision_link_basic_valid	5
+../Core/Src/d_decision.c:27:13:decision_link_security_allowed	4
+../Core/Src/d_decision.c:42:13:decision_link_threshold_ok	6
+../Core/Src/d_decision.c:60:16:decision_score_rtt	3
+../Core/Src/d_decision.c:71:16:decision_score_jitter	3
+../Core/Src/d_decision.c:82:16:decision_score_loss	3
+../Core/Src/d_decision.c:93:16:decision_score_signal	3
+../Core/Src/d_decision.c:103:16:decision_calculate_weighted_score	3
+../Core/Src/d_decision.c:133:26:decision_select_threshold_weighted	7
+../Core/Src/d_decision.c:166:26:decision_select_lowest_latency	5
+../Core/Src/d_decision.c:195:26:decision_select_weighted_score	6
+../Core/Src/d_decision.c:227:26:decision_select_security_first	8
+../Core/Src/d_decision.c:262:26:decision_select_reliability_only	5
+../Core/Src/d_decision.c:291:19:decision_select_link	10

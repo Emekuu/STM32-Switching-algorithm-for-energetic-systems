@@ -1,0 +1,7 @@
+../Core/Src/drv_eth.c:23:20:Eth_Init	3
+../Core/Src/drv_eth.c:40:13:Eth_Close	3
+../Core/Src/drv_eth.c:51:16:Eth_IsAlive	5
+../Core/Src/drv_eth.c:68:20:Eth_Send	2
+../Core/Src/drv_eth.c:74:20:Eth_Receive	3
+../Core/Src/drv_eth.c:91:6:Eth_RegisterLinkInfo	1
+../Core/Src/drv_eth.c:96:13:Eth_UpdateSecurityStatus	2
