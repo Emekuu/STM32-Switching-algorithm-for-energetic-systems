@@ -1360,7 +1360,7 @@ void StartDefaultTask(void const * argument)
     	    App_UpdateEthLinkHealth();
     	    App_MaybeHardResetEthMetrics(now);
 
-    	    // ← pridaj toto:
+    	   
     	    Metrics_Age(&g_rx_bt, now, timeout_ms);
     	    Metrics_ApplyToLink(App_GetLink(LINK_BLUETOOTH), &g_rx_bt);
     	    if (Metrics_IsTimedOut(&g_rx_bt, now, timeout_ms))
@@ -1450,7 +1450,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1)
   {
-    HAL_IncTick();
+    HAL_IncTick();https://github.com/Emekuu/STM32-Switching-algorithm-for-energetic-systems/blob/main/swalg/Core/Src/main.c
   }
   /* USER CODE BEGIN Callback 1 */
 
