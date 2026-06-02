@@ -124,6 +124,22 @@ Zdroj: `Drivers/BSP/Components/lan8742/`
 
 Ovladač pro Ethernet PHY čip LAN8742 (RMII rozhraní)
 ---
+
+# Použité knihovny — STM32WB55 (BT koprocesor)
+
+
+### STM32WPAN Middleware
+- **Verze: V1.24.0** (23. října 2025)
+- Zdroj: `Middlewares/ST/STM32_WPAN/`
+- Licence: SLA0044 Rev 6 / October 2025
+
+Použité moduly z STM32WPAN:
+
+| Modul | Složka | Použité hlavičky | Popis |
+|-------|--------|-----------------|-------|
+| BLE stack | `ble/` | `ble.h` | Jádro BLE 5 stacku |
+| Interface | `interface/` | `shci.h`, `shci_tl.h`, `tl.h` | SHCI příkazy, Transport Layer přes IPCC |
+| Utilities | `utilities/` | `stm32_seq.h`, `stm32_lpm.h`, `dbg_trace.h`, `utilities_common.h` | Plánovač úloh, Low Power Manager, debug trace |
 ## Python nástroje (PC strana)
 
 ### `csv_logger.py`
