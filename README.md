@@ -69,7 +69,7 @@ PC nástroje (Python):
 | `eth_taskENTRY` | Normal | Rezervovaný (prázdny) |
 
 ---
-Cizí knihovny (Middlewares/Drivers)
+# Cizí knihovny (Middlewares/Drivers)
 ## FreeRTOS
 
 Zdroj: `Middlewares/Third_Party/FreeRTOS/`
