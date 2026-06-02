@@ -45,7 +45,7 @@ PC nástroje (Python):
 | PLL | 216 MHz | SYSCLK (max pre STM32F7) |
 | APB1 | 54 MHz | I2C, UART |
 | APB2 | 108 MHz | Timery |
-| TIM1 | — | HAL tick zdroj (namiesto SysTick) |
+| TIM1 | - | HAL tick zdroj (namiesto SysTick) |
 
 ---
 
@@ -53,10 +53,10 @@ PC nástroje (Python):
 
 | Periféria | Piny | Použitie |
 |-----------|------|----------|
-| USART3 | — | Debug UART (printf → `__io_putchar`) |
+| USART3 | - | Debug UART (printf → `__io_putchar`) |
 | I2C1 | PB8 (SCL), PB9 (SDA) | I2C slave — príjem BT dát |
-| ETH | — | 100 Mbit Ethernet, LwIP stack |
-| DMA | — | I2C1 RX/TX |
+| ETH | - | Ethernet, LwIP stack |
+| DMA | - | I2C1 RX/TX |
 
 ---
 
@@ -69,47 +69,45 @@ PC nástroje (Python):
 | `eth_taskENTRY` | Normal | Rezervovaný (prázdny) |
 
 ---
-Knihovny (Middlewares / Drivers)
-FreeRTOS
+Cizí knihovny (Middlewares/Drivers)
+## FreeRTOS
 
-Zdroj: Middlewares/Third_Party/FreeRTOS/
-Port: portable/GCC/ARM_CM7/r0p1 — Cortex-M7, revize r0p1
+Zdroj: `Middlewares/Third_Party/FreeRTOS/`
 CMSIS wrapper: CMSIS_RTOS a CMSIS_RTOS_V2
-Hlavičky: FreeRTOS/Source/include/
+Hlavičky: `FreeRTOS/Source/include/`
 
-LwIP (Lightweight IP stack)
+## LwIP (Lightweight IP stack)
 
-Zdroj: Middlewares/Third_Party/LwIP/
-Konfigurace projektu: LWIP/App/, LWIP/Target/
+Zdroj: `Middlewares/Third_Party/LwIP/`
+Konfigurace projektu: `LWIP/App/`, `LWIP/Target/`
 Používané moduly:
 
-lwip/sockets.h - BSD socket API (UDP, TCP)
-lwip/udp.h - RAW UDP PCB API
-lwip/netif.h - síťové rozhraní (netif)
-lwip/ip4_addr.h - IPv4 adresy
-lwip/stats.h - statistiky stacku
-lwip/opt.h - konfigurační makra
-lwip/sys.h - systémová abstrakce
-netif/ppp/ - PPP rozhraní (zahrnuto, nepoužívané)
-compat/posix/ - POSIX kompatibilita
+`lwip/sockets.h` - BSD socket API (UDP, TCP)
+`lwip/udp.h` - RAW UDP PCB API
+`lwip/netif.h` - síťové rozhraní (netif)
+`lwip/ip4_addr.h` - IPv4 adresy
+`lwip/stats.h` - statistiky stacku
+`lwip/opt.h` - konfigurační makra
+`lwip/sys.h` - systémová abstrakce
 
 
 
-STM32F7xx HAL Driver
 
-Zdroj: Drivers/STM32F7xx_HAL_Driver/
-Hlavičky: Inc/ a Inc/Legacy/
+
+## STM32F7xx HAL Driver
+
+Zdroj: `Drivers/STM32F7xx_HAL_Driver/`
+Hlavičky: `Inc/` a `Inc/Legacy/`
 Používané periferie: ETH, I2C, UART, DMA, GPIO, TIM, MPU, RCC
 
-CMSIS
+## CMSIS
 
-Zdroj: Drivers/CMSIS/
-Device/ST/STM32F7xx/Include/ - STM32F7 definice registrů
-Include/ - jádro Cortex-M7 (core_cm7.h, cmsis_gcc.h...)
+Zdroj: `Drivers/CMSIS/`
+`Device/ST/STM32F7xx/Include/` - STM32F7 definice registrů
 
-BSP LAN8742
+## BSP LAN8742
 
-Zdroj: Drivers/BSP/Components/lan8742/
+Zdroj: `Drivers/BSP/Components/lan8742/`
 Ovladač pro Ethernet PHY čip LAN8742 (RMII rozhraní)
 ---
 ## Python nástroje (PC strana)
