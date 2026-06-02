@@ -73,13 +73,17 @@ Cizí knihovny (Middlewares/Drivers)
 ## FreeRTOS
 
 Zdroj: `Middlewares/Third_Party/FreeRTOS/`
+
 CMSIS wrapper: CMSIS_RTOS a CMSIS_RTOS_V2
+
 Hlavičky: `FreeRTOS/Source/include/`
 
 ## LwIP (Lightweight IP stack)
 
 Zdroj: `Middlewares/Third_Party/LwIP/`
+
 Konfigurace projektu: `LWIP/App/`, `LWIP/Target/`
+
 Používané moduly:
 
 `lwip/sockets.h` - BSD socket API (UDP, TCP)
