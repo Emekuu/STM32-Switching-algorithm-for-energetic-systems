@@ -87,11 +87,17 @@ Konfigurace projektu: `LWIP/App/`, `LWIP/Target/`
 Používané moduly:
 
 `lwip/sockets.h` - BSD socket API (UDP, TCP)
+
 `lwip/udp.h` - RAW UDP PCB API
+
 `lwip/netif.h` - síťové rozhraní (netif)
+
 `lwip/ip4_addr.h` - IPv4 adresy
+
 `lwip/stats.h` - statistiky stacku
+
 `lwip/opt.h` - konfigurační makra
+
 `lwip/sys.h` - systémová abstrakce
 
 
@@ -101,17 +107,21 @@ Používané moduly:
 ## STM32F7xx HAL Driver
 
 Zdroj: `Drivers/STM32F7xx_HAL_Driver/`
+
 Hlavičky: `Inc/` a `Inc/Legacy/`
+
 Používané periferie: ETH, I2C, UART, DMA, GPIO, TIM, MPU, RCC
 
 ## CMSIS
 
 Zdroj: `Drivers/CMSIS/`
+
 `Device/ST/STM32F7xx/Include/` - STM32F7 definice registrů
 
 ## BSP LAN8742
 
 Zdroj: `Drivers/BSP/Components/lan8742/`
+
 Ovladač pro Ethernet PHY čip LAN8742 (RMII rozhraní)
 ---
 ## Python nástroje (PC strana)
